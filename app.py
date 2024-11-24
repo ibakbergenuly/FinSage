@@ -9,7 +9,7 @@ import json
 
 app = Flask(__name__)
 WATCH_DIRECTORY = "uploads"
-ALLOWED_EXTENSION = ".finsage"
+ALLOWED_EXTENSION = ".csv"
 
 class FileHandler(FileSystemEventHandler):
     def __init__(self):
