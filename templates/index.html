@@ -52,6 +52,19 @@
             50% { width: 100%; }
             100% { width: 0%; }
         }
+        .retry-button {
+            display: none;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .retry-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -62,24 +75,37 @@
         <p>Analyzing file...</p>
     </div>
 
+    <button class="retry-button" id="retry-button" onclick="retryAnalysis()">
+        Analyze Again
+    </button>
+
     <div class="chat-window" id="chat-window">
     </div>
-      <script>
-          const eventSource = new EventSource('/stream');
-          const chatWindow = document.getElementById('chat-window');
-          const loading = document.getElementById('loading');
 
-          eventSource.onmessage = function(event) {
-              const data = JSON.parse(event.data);
+    <script>
+        const eventSource = new EventSource('/stream');
+        const chatWindow = document.getElementById('chat-window');
+        const loading = document.getElementById('loading');
+        const retryButton = document.getElementById('retry-button');
+
+        function retryAnalysis() {
+            loading.style.display = 'block';
+            retryButton.style.display = 'none';
+            fetch('/retry');
+        }
+
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
             
-              if ('processing' in data) {
-                  loading.style.display = data.processing ? 'block' : 'none';
-              }
+            if ('processing' in data) {
+                loading.style.display = data.processing ? 'block' : 'none';
+                retryButton.style.display = data.processing ? 'none' : 'block';
+            }
             
-              if ('response' in data) {
-                  chatWindow.innerHTML = data.response;
-              }
-          };
-      </script>
-  </body>
+            if ('response' in data) {
+                chatWindow.innerHTML = data.response;
+            }
+        };
+    </script>
+</body>
 </html>

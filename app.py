@@ -16,6 +16,7 @@ class FileHandler(FileSystemEventHandler):
         self.mistral = MistralService()
         self.latest_response = None
         self.processing = False
+        self.current_file = None
 
     def read_file_with_retry(self, filepath, max_attempts=5):
         for attempt in range(max_attempts):
@@ -27,18 +28,28 @@ class FileHandler(FileSystemEventHandler):
                 continue
         return None
 
-    def on_created(self, event):
-        if not event.is_directory and event.src_path.endswith(ALLOWED_EXTENSION):
+    def analyze_current_file(self):
+        if self.current_file:
             self.processing = True
-            text = self.read_file_with_retry(event.src_path)
+            text = self.read_file_with_retry(self.current_file)
             if text:
                 self.latest_response = self.mistral.analyze_file(text)
             self.processing = False
+
+    def on_created(self, event):
+        if not event.is_directory and event.src_path.endswith(ALLOWED_EXTENSION):
+            self.current_file = event.src_path
+            self.analyze_current_file()
 
     def reset_response(self):
         self.latest_response = None
 
 file_handler = FileHandler()
+
+@app.route('/retry')
+def retry():
+    file_handler.analyze_current_file()
+    return '', 204
 
 @app.route('/')
 def home():
