@@ -1,25 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Flask App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>FinSage File Analysis</title>
+    <style>
+        .chat-window {
+            width: 80%;
+            height: 400px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading-bar {
+            width: 200px;
+            height: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .loading-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #4CAF50;
+            animation: loading 2s infinite ease-in-out;
+        }
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to My Flask App</h1>
-        <nav>
-            <a href="/">Home</a> |
-            <a href="/about">About</a>
-        </nav>
-    </header>
-    <main>
-        <p>Hello, this is a simple Flask application!</p>
-    </main>
-    <footer>
-        <p>&copy; 2024 My Flask App</p>
-    </footer>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
+    <div class="loading" id="loading">
+        <div class="loading-bar">
+            <div class="loading-bar-fill"></div>
+        </div>
+        <p>Analyzing file...</p>
+    </div>
+
+    <div class="chat-window" id="chat-window">
+    </div>
+      <script>
+          const eventSource = new EventSource('/stream');
+          const chatWindow = document.getElementById('chat-window');
+          const loading = document.getElementById('loading');
+
+          eventSource.onmessage = function(event) {
+              const data = JSON.parse(event.data);
+            
+              if ('processing' in data) {
+                  loading.style.display = data.processing ? 'block' : 'none';
+              }
+            
+              if ('response' in data) {
+                  chatWindow.innerHTML = data.response;
+              }
+          };
+      </script>
+  </body>
 </html>
